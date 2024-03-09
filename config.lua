@@ -4,24 +4,24 @@ Config.debug = false -- Set to true to enable debug messages
 Config.keys = {
     R = 0xE3BF959B,
     G = 0xA1ABB953,
-    E = 0x41AC83D1
+    E = 0x41AC83D1,
+    F = 0x26A18F47
 }
 --Bucketing--
 Config.mudBucket = "mud_bucket" --Item to use
-Config.mudBucketAmount = 1 --Amount of mud needed
 Config.emptyMudBucket = "empty_mud_bucket" --Item to give back after use
-Config.waterBucket = "water_bucket" --Item to use
-Config.emptyWaterBucket = "empty_water_bucket" --Item to give back after use
-Config.bucketingTime = 10000 --10 seconds
+Config.waterBucket = "wateringcan" --!!!YOU NEED TO USE A RIVER OR WATER SCRIPT AND MATCH THE ITEM NAMES!!!
+Config.emptyWaterBucket = "wateringcan_empty" --!!!YOU NEED TO USE A RIVER OR WATER SCRIPT AND MATCH THE ITEM NAMES!!!
+Config.bucketingTime = 8000 --Time to collect and use buckets
 
 --Gold Washing--
-Config.goldwashProp = "p_goldcradlestand01x" --Prop to use
-Config.goldSiftingProp = "p_goldpan01x" --Prop to use
-Config.washBuildTime = 10 --Time in seconds to build the wash station
-Config.mudBucketAmountt = 2 --Amount of mud needed
-Config.goldWashTime = 10000 --10 seconds
-Config.goldWashReward = "gold_flakes" --Item to give
-Config.goldWashRewardAmount = 1 --Amount of reward to give
+Config.goldwashProp = "p_goldcradlestand01x" --Prop & DB item name (NOT LABLE)
+Config.goldSiftingProp = "p_copperpan02x" --Prop to use for sifting line 298 of client to change bones etc
+Config.goldPan = "goldpan" --Item name needed
+Config.washBuildTime = 8000 --Time to build the wash station
+Config.goldWashTime = 8000 -- Time To Pan
+Config.goldWashReward = "gold_nugget" --Item to give
+Config.goldWashRewardAmount = 5 --Amount of reward to give
 -----------------------------------
 
 --Extra Reward, because why not--

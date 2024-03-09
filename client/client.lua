@@ -4,26 +4,39 @@ progressbar = exports["feather-progressbar"]:initiate()
 local placing = false
 local prompt = false
 local BuildPrompt, DelPrompt, PlacingObj
+local stage = "mudBucket"
+
+local promptGroup = BccUtils.Prompt:SetupPromptGroup()
+local useMudBucketPrompt = promptGroup:RegisterPrompt(_U('promptMudBucket'), Config.keys.E, 1, 1, true, 'hold', { timedeventhash = "MEDIUM_TIMED_EVENT" })
+local useWaterBucketPrompt = promptGroup:RegisterPrompt(_U('promptWaterBucket'), Config.keys.R, 1, 1, true, 'hold', { timedeventhash = "MEDIUM_TIMED_EVENT" })
+local useGoldPanPrompt = promptGroup:RegisterPrompt(_U('promptPan'), Config.keys.G, 1, 1, true, 'hold', { timedeventhash = "MEDIUM_TIMED_EVENT" })
+local removeTablePrompt = promptGroup:RegisterPrompt(_U('promptPickUp'), Config.keys.F, 1, 1, true, 'hold', { timedeventhash = "MEDIUM_TIMED_EVENT" })
+
 
 
 -----------------------------------Mud Bucket-----------------------------------
 
 function isNearWater()
-    local ped = PlayerPedId()
-    local coords = GetEntityCoords(ped)
-    local water = Citizen.InvokeNative(0x5BA7A68A346A5A91, coords.x, coords.y, coords.z, 1.0)
-    return water
+    local playerPed = PlayerPedId()
+    local coords = GetEntityCoords(playerPed, true)
+    local waterHash = Citizen.InvokeNative(0x5BA7A68A346A5A91, coords.x, coords.y, coords.z) -- GetWaterMapZoneAtCoords
+    local pos = GetEntityCoords(PlayerPedId(), true)
+
+
+    local isInAllowedZone = false
+    for _, waterZone in ipairs(Config.waterTypes) do
+        if waterHash == GetHashKey(waterZone.hash) and IsPedOnFoot(playerPed) and IsEntityInWater(playerPed) then
+            isInAllowedZone = true
+            break
+        end
+    end
+
+    if not isInAllowedZone then
+        TriggerEvent("vorp:TipBottom", _U('noWater'), 4000)
+        return
+    end
+    return isInAllowedZone
 end
-
-local promptGroup = BccUtils.Prompt:SetupPromptGroup()
-local useMudBucketPrompt = promptGroup:RegisterPrompt("Use Mud Bucket", Config.keys.R, 1, 1, true, 'hold', { timedeventhash = "MEDIUM_TIMED_EVENT" })
-local useWaterBucketPrompt = promptGroup:RegisterPrompt("Use Water Bucket", Config.keys.R, 1, 1, true, 'hold', { timedeventhash = "MEDIUM_TIMED_EVENT" })
-local useGoldPanPrompt = promptGroup:RegisterPrompt("Use Gold Pan", Config.keys.R, 1, 1, true, 'hold', { timedeventhash = "MEDIUM_TIMED_EVENT" })
-local deletePrompt = promptGroup:RegisterPrompt("Use Gold Pan", Config.keys.G, 1, 1, true, 'hold', { timedeventhash = "MEDIUM_TIMED_EVENT" })
-
--- Initial state
-local stage = "mudBucket" 
-
 
 Citizen.CreateThread(function()
     while true do
@@ -39,46 +52,37 @@ Citizen.CreateThread(function()
             
             if distance < 2.0 then
                 promptGroup:ShowGroup("Gold Panning")
-                deletePrompt:TogglePrompt(true)
+                
                 useMudBucketPrompt:TogglePrompt(stage == "mudBucket")
                 useWaterBucketPrompt:TogglePrompt(stage == "waterBucket")
                 useGoldPanPrompt:TogglePrompt(stage == "goldPan")
+                removeTablePrompt:TogglePrompt(true)
 
                 if stage == "mudBucket" and useMudBucketPrompt:HasCompleted() then
                     TriggerServerEvent('fists-GoldPanning:useMudBucket')
-                    stage = "waterBucket"
                 elseif stage == "waterBucket" and useWaterBucketPrompt:HasCompleted() then
                     TriggerServerEvent('fists-GoldPanning:useWaterBucket')
-                    stage = "goldPan"
                 elseif stage == "goldPan" and useGoldPanPrompt:HasCompleted() then
-                    exports['mor_minigames']:skill_circle({
-                        style = 'default', -- Style template
-                        icon = 'fa-solid fa-sun', -- Any font-awesome icon; will use template icon if none is provided
-                        area_size = 4, -- Size of the target area in Math.PI / "value"
-                        speed = 0.02, -- Speed the target area moves
-                    }, function(success) -- Game callback
-                        if success then
-                            PlayAnim("script_re@gold_panner@gold_success", "panning_idle", 8000, true, true)
-                            stage = "mudBucket"
-                        else
-                            stage = "mudBucket"
-                        end
-                    end)
+                    TriggerServerEvent('fists-GoldPanning:usegoldPan')
                 end
-            else
-
+                if removeTablePrompt:HasCompleted() then
+                    print("Delete prompt entered")
+                    removeTable()
+                    
+                end
             end
-        else
         end
     end
 end)
 
 
 
+
+
 RegisterNetEvent('fists-GoldPanning:mudBucketUsedSuccess', function()
     local playerPed = PlayerPedId()
     Citizen.InvokeNative(0x524B54361229154F, playerPed, GetHashKey('WORLD_HUMAN_BUCKET_POUR_LOW'), -1, true, 0, -1, false)
-    progressbar.start("Pouring mud", 8000, function ()
+    progressbar.start("Pouring mud", Config.bucketingTime, function ()
         ClearPedTasks(playerPed, true, true)
         Citizen.InvokeNative(0xFCCC886EDE3C63EC, playerPed, 2, true) 
         Wait(100)
@@ -92,7 +96,7 @@ end)
 RegisterNetEvent('fists-GoldPanning:waterUsedSuccess', function()
     local playerPed = PlayerPedId()
     Citizen.InvokeNative(0x524B54361229154F, playerPed, GetHashKey('WORLD_HUMAN_BUCKET_POUR_LOW'), -1, true, 0, -1, false)
-    progressbar.start("Pouring Water", 8000, function ()
+    progressbar.start(_U('pouringWater'), Config.bucketingTime, function ()
         ClearPedTasks(playerPed, true, true)
         Citizen.InvokeNative(0xFCCC886EDE3C63EC, playerPed, 2, true) 
         Wait(100)
@@ -101,10 +105,29 @@ RegisterNetEvent('fists-GoldPanning:waterUsedSuccess', function()
     stage = "goldPan"
 end)
 
+RegisterNetEvent('fists-GoldPanning:goldPanUsedSuccess', function()
+    exports['mor_minigames']:skill_circle({
+        style = 'default', -- Style template
+        icon = 'fa-solid fa-sun', -- Any font-awesome icon; will use template icon if none is provided
+        area_size = 4, -- Size of the target area in Math.PI / "value"
+        speed = 0.02, -- Speed the target area moves
+    }, function(success) -- Game callback
+        if success then
+            PlayAnim("script_re@gold_panner@gold_success", "panning_idle", Config.goldWashTime, true, true)
+            Wait(Config.goldWashTime)
+            TriggerServerEvent('fists-GoldPanning:panSuccess')
+            stage = "mudBucket"
+        end
+    end)
+end)
+
 RegisterNetEvent('fists-GoldPanning:mudBucketUsedfailure', function()
     stage = "mudBucket"
 end)
 RegisterNetEvent('fists-GoldPanning:waterUsedfailure', function()
+    stage = "mudBucket"
+end)
+RegisterNetEvent('fists-GoldPanning:goldPanfailure', function()
     stage = "mudBucket"
 end)
 
@@ -114,12 +137,13 @@ AddEventHandler('fists-GoldPanning:useEmptyMudBucket', function()
     if isNearWater() then
         local playerPed = PlayerPedId()
         Citizen.InvokeNative(0x524B54361229154F, playerPed, GetHashKey('WORLD_HUMAN_BUCKET_FILL'), -1, true, 0, -1, false)
-        progressbar.start("Collecting Mud", 8000, function ()
+        progressbar.start(_U('collectingMud'), Config.bucketingTime, function ()
             ClearPedTasks(playerPed, true, true)
             Citizen.InvokeNative(0xFCCC886EDE3C63EC, playerPed, 2, true) 
             Wait(100)
+            TriggerServerEvent('fists-GoldPanning:mudBuckets')
         end, 'linear', 'rgba(255, 255, 255, 0.8)', '20vw', 'rgba(255, 255, 255, 0.1)', 'rgba(211, 211, 211, 0.5)')
-        TriggerServerEvent('fists-GoldPanning:mudBuckets')
+
     else
         TiggerClientEvent("vorp:TipRight", _U('noWater'), 3000)
     end
@@ -128,7 +152,21 @@ end)
 
 
 -----------------------------------PROP STUFF-----------------------------------
-function SetupBuildPrompt()
+
+function removeTable() -- Removes the spawned prop
+    local playerPed = PlayerPedId()
+    local playerCoords = GetEntityCoords(playerPed)
+    local prop = GetClosestObjectOfType(playerCoords.x, playerCoords.y, playerCoords.z, 2.0, GetHashKey(Config.goldwashProp), false, false, false)
+    
+    if prop ~= 2 then
+        print("Deleting" .. prop)
+        DeleteObject(prop)
+        TriggerServerEvent('fists-GoldPanning:givePropBack')
+    end
+end
+
+
+function SetupBuildPrompt() -- Sets up the prompt for building the prop
     local str = _U('BuildPrompt')
     BuildPrompt = Citizen.InvokeNative(0x04F97DE45A519419)
     PromptSetControlAction(BuildPrompt, Config.keys.R)
@@ -140,8 +178,8 @@ function SetupBuildPrompt()
     PromptRegisterEnd(BuildPrompt)
 end
 
-function SetupDelPrompt()
-    local str = _U('DestroyPrompt')
+function SetupDelPrompt() -- Sets up the prompt for deleting the prop when being placed
+    local str = _U('DelPrompt')
     DelPrompt = Citizen.InvokeNative(0x04F97DE45A519419)
     PromptSetControlAction(DelPrompt, Config.keys.E)
     str = CreateVarString(10, 'LITERAL_STRING', str)
@@ -152,12 +190,30 @@ function SetupDelPrompt()
     PromptRegisterEnd(DelPrompt)
 end
 
-RegisterNetEvent('fists-GoldPanning:placeProp')
+RegisterNetEvent('fists-GoldPanning:placeProp') --you guessed it, places the prop
 AddEventHandler('fists-GoldPanning:placeProp', function(propName)
     SetupBuildPrompt()
     SetupDelPrompt()
+    local playerPed = PlayerPedId()
+    local coords = GetEntityCoords(playerPed, true)
+    local waterHash = Citizen.InvokeNative(0x5BA7A68A346A5A91, coords.x, coords.y, coords.z)
     local pos = GetEntityCoords(PlayerPedId(), true)
-    local pHead = GetEntityHeading(PlayerPedId())
+
+
+    local isInAllowedZone = false
+    for _, waterZone in ipairs(Config.waterTypes) do
+        if waterHash == GetHashKey(waterZone.hash) and IsPedOnFoot(playerPed) and IsEntityInWater(playerPed) then
+            isInAllowedZone = true
+            break
+        end
+    end
+
+    if not isInAllowedZone then
+        TriggerEvent("vorp:TipBottom", _U('noWater'), 4000)
+        return
+    end
+
+    local pHead = GetEntityHeading(playerPed)
     local object = GetHashKey(propName)
     if not HasModelLoaded(object) then
         RequestModel(object)
@@ -165,6 +221,7 @@ AddEventHandler('fists-GoldPanning:placeProp', function(propName)
     while not HasModelLoaded(object) do
         Wait(5)
     end
+
     placing = true
     PlacingObj = CreateObject(object, pos.x, pos.y, pos.z, false, true, false)
     SetEntityHeading(PlacingObj, pHead)
@@ -184,19 +241,18 @@ AddEventHandler('fists-GoldPanning:placeProp', function(propName)
             PromptSetEnabled(BuildPrompt, false)
             PromptSetVisible(BuildPrompt, false)
             PromptSetEnabled(DelPrompt, false)
-            PromptSetVisible(DelPrompt, false)
+           PromptSetVisible(DelPrompt, false)
             prompt = false
             local PropPos = GetEntityCoords(PlacingObj, true)
             local PropHeading = GetEntityHeading(PlacingObj)
             DeleteObject(PlacingObj)
-            --TriggerEvent("vorp:TipBottom", _U('PlacingProp'), 4000)
+            progressbar.start(_U('buildingTable'), Config.washBuildTime , function ()
+            end, 'linear', 'rgba(255, 255, 255, 0.8)', '20vw', 'rgba(255, 255, 255, 0.1)', 'rgba(211, 211, 211, 0.5)')
             TaskStartScenarioInPlace(PlayerPedId(), GetHashKey('WORLD_HUMAN_SLEDGEHAMMER'), -1, true, false, false, false)
-            Citizen.Wait(Config.washBuildTime * 1000)
+            Citizen.Wait(Config.washBuildTime)
             ClearPedTasksImmediately(PlayerPedId())
             if propName == Config.goldwashProp then
-                --TriggerServerEvent('bcc-brewing:SaveToDB', Config.Props.still, PropPos.x, PropPos.y, PropPos.z, PropHeading)
-                --TriggerEvent("vorp:TipBottom", _U('StillPlaced'), 4000)
-                TempObj = CreateObject(object, PropPos.x, PropPos.y, PropPos.z, false, true, false)
+                TempObj = CreateObject(object, PropPos.x, PropPos.y, PropPos.z, true, true, true)
                 SetEntityHeading(TempObj, PropHeading)
                 PlaceObjectOnGroundProperly(TempObj)
                 placing = false
@@ -247,10 +303,10 @@ function PlayAnim(animDict, animName, time, raking, loopUntilTimeOver) --functio
     TaskPlayAnim(PlayerPedId(), animDict, animName, 1.0, 1.0, animTime, flag, 0, true, 0, false, 0, false)
     if raking then
       local playerCoords = GetEntityCoords(PlayerPedId())
-      local rakeObj = CreateObject("p_copperpan02x", playerCoords.x, playerCoords.y, playerCoords.z, true, true, false)
-      AttachEntityToEntity(rakeObj, PlayerPedId(), GetEntityBoneIndexByName(PlayerPedId(), "PH_R_Hand"), 0.0, 0.0, 0.19, 0.0, 0.0, 0.0, false, false, true, false, 0, true, false, false)
-      progressbar.start("Sifting Gold", time, function () -----------------Replace with locale
-      Wait(time)
+      local rakeObj = CreateObject(Config.goldSiftingProp, playerCoords.x, playerCoords.y, playerCoords.z, true, true, false)
+      AttachEntityToEntity(rakeObj, PlayerPedId(), GetEntityBoneIndexByName(PlayerPedId(), "PH_R_Hand"), 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, false, false, true, false, 0, true, false, false)
+      progressbar.start(_U('siftingGold'), time, function ()
+      Wait(5)
       DeleteObject(rakeObj)
       ClearPedTasksImmediately(PlayerPedId())
     end, 'linear', 'rgba(255, 255, 255, 0.8)', '20vw', 'rgba(255, 255, 255, 0.1)', 'rgba(211, 211, 211, 0.5)')
@@ -268,19 +324,3 @@ function PlayAnim(animDict, animName, time, raking, loopUntilTimeOver) --functio
     ClearPedTasksImmediately(pl)
     FreezeEntityPosition(pl, false)
   end
-
-
-
-
-
-
-
-
---[[
-
- Add Progress Bar to build
- Add Prompt to destory and add item back
- Fix prop position on gold panning
-
-
-  ]]
