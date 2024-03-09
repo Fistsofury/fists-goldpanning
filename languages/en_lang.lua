@@ -23,4 +23,7 @@ Locales["en_lang"] = {
     promptPan = "Use Pan",
     BuildPrompt = "Build Wash Station",
     DelPrompt = "Cancel Building",
+    promptPickUp = "Pick up table",
+    propPickup = "You have picked up the wash table",
+    propFull = "You can't carry anymore wash Tables",    
 }
