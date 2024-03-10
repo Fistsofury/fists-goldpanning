@@ -14,6 +14,13 @@ exports.vorp_inventory:registerUsableItem(Config.emptyMudBucket, function(data) 
     exports.vorp_inventory:closeInventory(data.source)
   end)
 
+  if Config.useWaterItems then
+    exports.vorp_inventory:registerUsableItem(Config.emptyWaterBucket, function(data) --Use the water bucket
+        TriggerClientEvent('fists-GoldPanning:useWaterBucket', data.source, data.item.amount)
+        exports.vorp_inventory:closeInventory(data.source)
+    end)
+  end
+
 
 
   -------------------------------------Logic for Mud Buckets-------------------------------------
@@ -35,6 +42,27 @@ AddEventHandler('fists-GoldPanning:mudBuckets', function()
         TriggerClientEvent("vorp:TipRight", _source, _U('receivedEmptyMudBucket'), 3000) 
     else
         TriggerClientEvent("vorp:TipRight", _source, _U('cannotCarryMoreMudBuckets'), 3000) 
+    end
+
+end)
+
+RegisterServerEvent('fists-GoldPanning:waterBuckets')  -- Use the empty mud bucket and gain a mud bucket
+AddEventHandler('fists-GoldPanning:waterBuckets', function()
+    local _source = source
+    if exports.vorp_inventory:canCarryItem(_source, Config.waterBucket, 1, nil) then --Check if player can carry the mud bucket
+        exports.vorp_inventory:subItem(_source, Config.emptyWaterBucket, 1)
+            if Config.debug then
+                print("player " .. _source .. " has used a empty water bucket")
+            end
+        TriggerClientEvent("vorp:TipRight", _source, _U('receivedEmptyWaterBucket'), 3000) 
+
+        exports.vorp_inventory:addItem(_source, Config.waterBucket, 1)
+        if Config.debug then
+            print("player " .. _source .. " has received a water bucket") 
+        end
+        TriggerClientEvent("vorp:TipRight", _source, _U('receivedEmptyWaterBucket'), 3000) 
+    else
+        TriggerClientEvent("vorp:TipRight", _source, _U('cantCarryMoreEmptyWaterCans'), 3000) 
     end
 
 end)
@@ -108,8 +136,6 @@ end)
 RegisterServerEvent('fists-GoldPanning:panSuccess')
 AddEventHandler('fists-GoldPanning:panSuccess', function()
     local _source = source
-    local itemCount = exports.vorp_inventory:getItemCount(_source, Config.goldPan)
-    if itemCount > 0 then
         if exports.vorp_inventory:canCarryItem(_source, Config.goldWashReward, Config.goldWashRewardAmount) then
             exports.vorp_inventory:addItem(_source, Config.goldWashReward, Config.goldWashRewardAmount)
             TriggerClientEvent("vorp:TipRight", _source, _U('receivedGoldFlakes'), 3000)
@@ -127,12 +153,6 @@ AddEventHandler('fists-GoldPanning:panSuccess', function()
                 print("player " .. _source .. " has received " .. Config.extraRewardAmount .. " extra reward")
             end
         end
-    else
-        TriggerClientEvent("vorp:TipRight", _source, _U('noPan'), 3000)
-        if Config.debug then
-            print("player " .. _source .. " attempted to pan for gold without a gold pan")
-        end
-    end
 end)
 -------------------------------------Handle Prop Returns-------------------------------------
 RegisterServerEvent('fists-GoldPanning:givePropBack')

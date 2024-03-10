@@ -10,6 +10,7 @@ Config.keys = {
 --Bucketing--
 Config.mudBucket = "mud_bucket" --Item to use
 Config.emptyMudBucket = "empty_mud_bucket" --Item to give back after use
+Config.useWaterItems = true --Set to false if you have a river script
 Config.waterBucket = "wateringcan" --!!!YOU NEED TO USE A RIVER OR WATER SCRIPT AND MATCH THE ITEM NAMES!!!
 Config.emptyWaterBucket = "wateringcan_empty" --!!!YOU NEED TO USE A RIVER OR WATER SCRIPT AND MATCH THE ITEM NAMES!!!
 Config.bucketingTime = 8000 --Time to collect and use buckets
@@ -28,6 +29,20 @@ Config.goldWashRewardAmount = 5 --Amount of reward to give
 Config.extraReward = "gold_nugget" --Item to give
 Config.extraRewardAmount = 1 --Amount of reward to give
 Config.extraRewardChance = 10 --Chance of getting the extra reward
+
+
+--Minigame--
+Config.Minigame = {
+    focus = true, -- Should minigame take nui focus (required)
+    cursor = false, -- Should minigame have cursor
+    maxattempts = 2, -- How many fail attempts are allowed before game over
+    type = 'bar', -- What should the bar look like. (bar, trailing)
+    userandomkey = false, -- Should the minigame generate a random key to press?
+    keytopress = 'E', -- userandomkey must be false for this to work. Static key to press
+    keycode = 69, -- The JS keycode for the keytopress
+    speed = 34, -- How fast the orbiter grows
+    strict = true -- if true, letting the timer run out counts as a failed attempt
+}
 
 
 

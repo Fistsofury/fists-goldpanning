@@ -6,7 +6,8 @@ A realistic gold panning script made for VORP
 
 - River driven Gold Panning with Props.
 - Realistic gold panning mechanics.
-- Minigame added for extra enjoyment
+- Minigame added for extra enjoyment.
+- River location checks on tiem use.
 
 
 ## Installation
@@ -17,6 +18,7 @@ A realistic gold panning script made for VORP
 4. Add the script to your server.cfg file.
 5. Ensure you edit the config.lua to match your river or water scripts.
 6. Make sure you have all other items in your database or change the config
+7. if you want to use my images look in the image folder
 
 ## Usage
 
@@ -27,3 +29,14 @@ A realistic gold panning script made for VORP
 5. Collect any gold nuggets that you find and store them in your inventory.
 6. Sell the collected gold at designated locations within the game.
 
+
+
+## SQL
+### If you want to use my items
+
+INSERT IGNORE INTO items (`item`, `label`, `limit`, `can_remove`, `type`, `usable`) VALUES 
+                         ('p_goldcradlestand01x', 'Gold Wash Table', 1, 1, 'item_standard', 1),
+                         ('mud_bucket', 'Bucket of Mud', 20, 1, 'item_standard', 1),
+                         ('empty_mud_bucket', 'Empty mud bucket', 20, 1, 'item_standard', 1),
+                         ('wateringcan', 'Watering Can', 20, 1, 'item_standard', 1),
+                         ('wateringcan_empty', 'empty watering can', 20, 1, 'item_standard', 1),

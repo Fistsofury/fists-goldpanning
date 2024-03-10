@@ -1,5 +1,7 @@
 BccUtils = exports['bcc-utils'].initiate()
 progressbar = exports["feather-progressbar"]:initiate()
+local MiniGame = exports['bcc-minigames'].initiate()
+
 
 local placing = false
 local prompt = false
@@ -106,13 +108,8 @@ RegisterNetEvent('fists-GoldPanning:waterUsedSuccess', function()
 end)
 
 RegisterNetEvent('fists-GoldPanning:goldPanUsedSuccess', function()
-    exports['mor_minigames']:skill_circle({
-        style = 'default', -- Style template
-        icon = 'fa-solid fa-sun', -- Any font-awesome icon; will use template icon if none is provided
-        area_size = 4, -- Size of the target area in Math.PI / "value"
-        speed = 0.02, -- Speed the target area moves
-    }, function(success) -- Game callback
-        if success then
+    MiniGame.Start('skillcheck', Config.Minigame, function(result)
+        if result.passed then
             PlayAnim("script_re@gold_panner@gold_success", "panning_idle", Config.goldWashTime, true, true)
             Wait(Config.goldWashTime)
             TriggerServerEvent('fists-GoldPanning:panSuccess')
@@ -142,6 +139,24 @@ AddEventHandler('fists-GoldPanning:useEmptyMudBucket', function()
             Citizen.InvokeNative(0xFCCC886EDE3C63EC, playerPed, 2, true) 
             Wait(100)
             TriggerServerEvent('fists-GoldPanning:mudBuckets')
+        end, 'linear', 'rgba(255, 255, 255, 0.8)', '20vw', 'rgba(255, 255, 255, 0.1)', 'rgba(211, 211, 211, 0.5)')
+
+    else
+        TiggerClientEvent("vorp:TipRight", _U('noWater'), 3000)
+    end
+end)
+
+
+RegisterNetEvent('fists-GoldPanning:useWaterBucket')
+AddEventHandler('fists-GoldPanning:useWaterBucket', function()
+    if isNearWater() then
+        local playerPed = PlayerPedId()
+        Citizen.InvokeNative(0x524B54361229154F, playerPed, GetHashKey('WORLD_HUMAN_BUCKET_FILL'), -1, true, 0, -1, false)
+        progressbar.start(_U('collectingWater'), Config.bucketingTime, function ()
+            ClearPedTasks(playerPed, true, true)
+            Citizen.InvokeNative(0xFCCC886EDE3C63EC, playerPed, 2, true) 
+            Wait(100)
+            TriggerServerEvent('fists-GoldPanning:waterBuckets')
         end, 'linear', 'rgba(255, 255, 255, 0.8)', '20vw', 'rgba(255, 255, 255, 0.1)', 'rgba(211, 211, 211, 0.5)')
 
     else
