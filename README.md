@@ -44,3 +44,7 @@ INSERT IGNORE INTO items (`item`, `label`, `limit`, `can_remove`, `type`, `usabl
                          ('empty_mud_bucket', 'Empty mud bucket', 20, 1, 'item_standard', 1),
                          ('wateringcan', 'Watering Can', 20, 1, 'item_standard', 1),
                          ('wateringcan_empty', 'empty watering can', 20, 1, 'item_standard', 1),
+
+
+## Credits
+- Jannings and BCC-Saloon for some of the prop based code
