@@ -19,6 +19,7 @@ A realistic gold panning script made for VORP
 5. Ensure you edit the config.lua to match your river or water scripts.
 6. Make sure you have all other items in your database or change the config
 7. if you want to use my images look in the image folder
+8. Check DEPENDENCIES! and make sure they are ensure before the script
 
 ## Usage
 
@@ -29,8 +30,11 @@ A realistic gold panning script made for VORP
 5. Collect any gold nuggets that you find and store them in your inventory.
 6. Sell the collected gold at designated locations within the game.
 
-
-
+## Dependency
+- bcc-utils https://github.com/BryceCanyonCounty/bcc-utils
+- bcc-minigame https://github.com/BryceCanyonCounty/bcc-minigames
+- feather-progressbar https://github.com/FeatherFramework/feather-progressbar
+ 
 ## SQL
 ### If you want to use my items
 
