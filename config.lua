@@ -11,8 +11,8 @@ Config.keys = {
 Config.mudBucket = "mud_bucket" --Item to use
 Config.emptyMudBucket = "empty_mud_bucket" --Item to give back after use
 Config.useWaterItems = true --Set to false if you have a river script
-Config.waterBucket = "wateringcan" --!!!YOU NEED TO USE A RIVER OR WATER SCRIPT AND MATCH THE ITEM NAMES!!!
-Config.emptyWaterBucket = "wateringcan_empty" --!!!YOU NEED TO USE A RIVER OR WATER SCRIPT AND MATCH THE ITEM NAMES!!!
+Config.waterBucket = "wateringcan" --!!!IF YOU USE A RIVER OR WATER SCRIPT AND MATCH THE ITEM NAMES!!!
+Config.emptyWaterBucket = "wateringcan_empty" --!!!IF YOU TO USE A RIVER OR WATER SCRIPT AND MATCH THE ITEM NAMES!!!
 Config.bucketingTime = 8000 --Time to collect and use buckets
 
 --Gold Washing--
@@ -21,7 +21,7 @@ Config.goldSiftingProp = "p_copperpan02x" --Prop to use for sifting line 298 of 
 Config.goldPan = "goldpan" --Item name needed
 Config.washBuildTime = 8000 --Time to build the wash station
 Config.goldWashTime = 8000 -- Time To Pan
-Config.goldWashReward = "gold_nugget" --Item to give
+Config.goldWashReward = "gold_flakes" --Item to give
 Config.goldWashRewardAmount = 5 --Amount of reward to give
 -----------------------------------
 

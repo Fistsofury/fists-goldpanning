@@ -48,3 +48,4 @@ INSERT IGNORE INTO items (`item`, `label`, `limit`, `can_remove`, `type`, `usabl
 
 ## Credits
 - Jannings and BCC-Saloon for some of the prop based code
+- CocomonkSKY for the images
