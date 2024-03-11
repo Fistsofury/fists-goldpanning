@@ -168,4 +168,14 @@ AddEventHandler('fists-GoldPanning:givePropBack', function()
 end)
 
 
+RegisterServerEvent('fists-GoldPanning:addMudBack')
+AddEventHandler('fists-GoldPanning:addMudBack', function()
+    local _source = source
+    exports.vorp_inventory:addItem(_source, Config.emptyMudBucket, 1)
+end)
 
+RegisterServerEvent('fists-GoldPanning:addWaterBack')
+AddEventHandler('fists-GoldPanning:addWaterBack', function()
+    local _source = source
+    exports.vorp_inventory:addItem(_source, Config.emptyWaterBucket, 1)
+end)

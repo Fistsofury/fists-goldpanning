@@ -142,7 +142,8 @@ AddEventHandler('fists-GoldPanning:useEmptyMudBucket', function()
         end, 'linear', 'rgba(255, 255, 255, 0.8)', '20vw', 'rgba(255, 255, 255, 0.1)', 'rgba(211, 211, 211, 0.5)')
 
     else
-        TiggerClientEvent("vorp:TipRight", _U('noWater'), 3000)
+        TriggerServerEvent('fists-GoldPanning:addMudBack')
+        
     end
 end)
 
@@ -160,7 +161,7 @@ AddEventHandler('fists-GoldPanning:useWaterBucket', function()
         end, 'linear', 'rgba(255, 255, 255, 0.8)', '20vw', 'rgba(255, 255, 255, 0.1)', 'rgba(211, 211, 211, 0.5)')
 
     else
-        TiggerClientEvent("vorp:TipRight", _U('noWater'), 3000)
+        TriggerServerEvent('fists-GoldPanning:addWaterBack')
     end
 end)
 
@@ -225,6 +226,7 @@ AddEventHandler('fists-GoldPanning:placeProp', function(propName)
 
     if not isInAllowedZone then
         TriggerEvent("vorp:TipBottom", _U('noWater'), 4000)
+        TriggerServerEvent('fists-GoldPanning:givePropBack')
         return
     end
 
@@ -281,6 +283,7 @@ AddEventHandler('fists-GoldPanning:placeProp', function(propName)
             PromptSetVisible(DelPrompt, false)
             DeleteObject(PlacingObj)
             prompt = false
+            TriggerServerEvent('fists-GoldPanning:givePropBack')
             break
         end
     end
