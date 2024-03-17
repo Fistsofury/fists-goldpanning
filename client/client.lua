@@ -165,21 +165,31 @@ AddEventHandler('fists-GoldPanning:useWaterBucket', function()
     end
 end)
 
+RegisterNetEvent('fists-GoldPanning:canCarryResponse')
+AddEventHandler('fists-GoldPanning:canCarryResponse', function(canCarry)
+    if canCarry then
+        local playerPed = PlayerPedId()
+        local playerCoords = GetEntityCoords(playerPed)
+        local prop = GetClosestObjectOfType(playerCoords.x, playerCoords.y, playerCoords.z, 2.0, GetHashKey(Config.goldwashProp), false, false, false)
+
+        if prop ~= 0 then
+            DeleteObject(prop)
+            TriggerServerEvent('fists-GoldPanning:givePropBack')
+        end
+    else
+        TriggerEvent("vorp:TipBottom", _U('propFull'), 4000)
+    end
+end)
+
+
 
 
 -----------------------------------PROP STUFF-----------------------------------
 
-function removeTable() -- Removes the spawned prop
-    local playerPed = PlayerPedId()
-    local playerCoords = GetEntityCoords(playerPed)
-    local prop = GetClosestObjectOfType(playerCoords.x, playerCoords.y, playerCoords.z, 2.0, GetHashKey(Config.goldwashProp), false, false, false)
-    
-    if prop ~= 2 then
-        print("Deleting" .. prop)
-        DeleteObject(prop)
-        TriggerServerEvent('fists-GoldPanning:givePropBack')
-    end
+function removeTable() -- Initiates check to remove the spawned prop
+    TriggerServerEvent('fists-GoldPanning:checkCanCarry', Config.goldwashProp)
 end
+
 
 
 function SetupBuildPrompt() -- Sets up the prompt for building the prop

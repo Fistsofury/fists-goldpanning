@@ -191,3 +191,11 @@ AddEventHandler('fists-GoldPanning:addWaterBack', function()
     local _source = source
     exports.vorp_inventory:addItem(_source, Config.emptyWaterBucket, 1)
 end)
+
+
+RegisterServerEvent('fists-GoldPanning:checkCanCarry')
+AddEventHandler('fists-GoldPanning:checkCanCarry', function(itemName)
+    local _source = source
+    local canCarry = exports.vorp_inventory:canCarryItem(_source, itemName, 1)
+    TriggerClientEvent('fists-GoldPanning:canCarryResponse', _source, canCarry)
+end)
