@@ -1,4 +1,5 @@
 local VORPcore = exports.vorp_core:GetCore()
+local goldPanUse = {}
 
 
 -------------------------------------Register Usable Items-------------------------------------
@@ -118,6 +119,11 @@ AddEventHandler('fists-GoldPanning:usegoldPan', function()
     if exports.vorp_inventory:canCarryItem(_source, Config.emptyWaterBucket, 1, nil) then
         if itemCount > 0 then
             TriggerClientEvent('fists-GoldPanning:goldPanUsedSuccess', _source)
+            goldPanUse[_source] = true
+            Citizen.CreateThread(function()
+                Citizen.Wait(30000)
+                goldPanUse[_source] = nil
+            end)
         else
             TriggerClientEvent("vorp:TipRight", _source, _U('noPan'), 3000)
             TriggerClientEvent("fists-GoldPanning:goldPanfailure", _source)
@@ -136,7 +142,7 @@ end)
 RegisterServerEvent('fists-GoldPanning:panSuccess')
 AddEventHandler('fists-GoldPanning:panSuccess', function()
     local _source = source
-        if exports.vorp_inventory:canCarryItem(_source, Config.goldWashReward, Config.goldWashRewardAmount) then
+        if exports.vorp_inventory:canCarryItem(_source, Config.goldWashReward, Config.goldWashRewardAmount) and goldPanUse[_source] then
             exports.vorp_inventory:addItem(_source, Config.goldWashReward, Config.goldWashRewardAmount)
             TriggerClientEvent("vorp:TipRight", _source, _U('receivedGoldFlakes'), 3000)
             if Config.debug then
@@ -146,13 +152,19 @@ AddEventHandler('fists-GoldPanning:panSuccess', function()
             TriggerClientEvent("vorp:TipRight", _source, _U('cantCarryMoreGoldFlakes'), 3000)
         end
         
-        if math.random(100) <= Config.extraRewardChance then
+        if math.random(100) <= Config.extraRewardChance and goldPanUse[_source] then
             exports.vorp_inventory:addItem(_source, Config.extraReward, Config.extraRewardAmount)
             TriggerClientEvent("vorp:TipRight", _source, _U('receivedExtraReward'), 3000)
             if Config.debug then
                 print("player " .. _source .. " has received " .. Config.extraRewardAmount .. " extra reward")
             end
         end
+
+        if not goldPanUse[_source] then 
+            --prob cheater
+            return
+        end
+    goldPanUse[_source] = nil
 end)
 -------------------------------------Handle Prop Returns-------------------------------------
 RegisterServerEvent('fists-GoldPanning:givePropBack')
