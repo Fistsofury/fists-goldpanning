@@ -40,6 +40,13 @@ function isNearWater()
     return isInAllowedZone
 end
 
+local activePrompts = {
+    mudBucket = false,
+    waterBucket = false,
+    goldPan = false,
+    removeTable = true,
+}
+
 Citizen.CreateThread(function()
     while true do
         Wait(5)
@@ -47,35 +54,55 @@ Citizen.CreateThread(function()
         local playerPed = PlayerPedId()
         local playerCoords = GetEntityCoords(playerPed)
         local prop = GetClosestObjectOfType(playerCoords.x, playerCoords.y, playerCoords.z, 2.0, GetHashKey(Config.goldwashProp), false, false, false)
-        
-        if prop ~= 0 and placing == false  then
+
+        if prop ~= 0 and not placing then
             local propCoords = GetEntityCoords(prop)
             local distance = GetDistanceBetweenCoords(playerCoords, propCoords, true)
-            
+
             if distance < 2.0 then
                 promptGroup:ShowGroup("Gold Panning")
-                
-                useMudBucketPrompt:TogglePrompt(stage == "mudBucket")
-                useWaterBucketPrompt:TogglePrompt(stage == "waterBucket")
-                useGoldPanPrompt:TogglePrompt(stage == "goldPan")
-                removeTablePrompt:TogglePrompt(true)
 
-                if stage == "mudBucket" and useMudBucketPrompt:HasCompleted() then
+                -- Only toggle prompts based on their active state
+                useMudBucketPrompt:TogglePrompt(activePrompts.mudBucket and stage == "mudBucket")
+                useWaterBucketPrompt:TogglePrompt(activePrompts.waterBucket and stage == "waterBucket")
+                useGoldPanPrompt:TogglePrompt(activePrompts.goldPan and stage == "goldPan")
+                removeTablePrompt:TogglePrompt(activePrompts.removeTable)
+
+                -- Mud Bucket
+                if stage == "mudBucket" and useMudBucketPrompt:HasCompleted() and activePrompts.mudBucket then
                     TriggerServerEvent('fists-GoldPanning:useMudBucket')
-                elseif stage == "waterBucket" and useWaterBucketPrompt:HasCompleted() then
+                    activePrompts.mudBucket = false
+                end
+                -- Water Bucket
+                if stage == "waterBucket" and useWaterBucketPrompt:HasCompleted() and activePrompts.waterBucket then
                     TriggerServerEvent('fists-GoldPanning:useWaterBucket')
-                elseif stage == "goldPan" and useGoldPanPrompt:HasCompleted() then
+                    activePrompts.waterBucket = false
+                end
+                -- Gold Pan
+                if stage == "goldPan" and useGoldPanPrompt:HasCompleted() and activePrompts.goldPan then
                     TriggerServerEvent('fists-GoldPanning:usegoldPan')
+                    activePrompts.goldPan = false
                 end
-                if removeTablePrompt:HasCompleted() then
-                    print("Delete prompt entered")
+                -- Remove Table
+                if removeTablePrompt:HasCompleted() and activePrompts.removeTable then
                     removeTable()
-                    
+                    activePrompts.removeTable = false
                 end
+            else
+                ResetActivePrompts()
             end
+        else
+            ResetActivePrompts()
         end
     end
 end)
+
+function ResetActivePrompts()
+    activePrompts.mudBucket = true
+    activePrompts.waterBucket = true
+    activePrompts.goldPan = true
+    activePrompts.removeTable = true
+end
 
 
 
@@ -89,7 +116,7 @@ RegisterNetEvent('fists-GoldPanning:mudBucketUsedSuccess', function()
         Citizen.InvokeNative(0xFCCC886EDE3C63EC, playerPed, 2, true) 
         Wait(100)
     end, 'linear', 'rgba(255, 255, 255, 0.8)', '20vw', 'rgba(255, 255, 255, 0.1)', 'rgba(211, 211, 211, 0.5)')
-    Wait(8000)
+    Wait(Config.bucketingTime)
     stage = "waterBucket"
 end)
 
@@ -103,7 +130,7 @@ RegisterNetEvent('fists-GoldPanning:waterUsedSuccess', function()
         Citizen.InvokeNative(0xFCCC886EDE3C63EC, playerPed, 2, true) 
         Wait(100)
     end, 'linear', 'rgba(255, 255, 255, 0.8)', '20vw', 'rgba(255, 255, 255, 0.1)', 'rgba(211, 211, 211, 0.5)')
-    Wait(8000)
+    Wait(Config.bucketingTime)
     stage = "goldPan"
 end)
 
@@ -120,12 +147,15 @@ end)
 
 RegisterNetEvent('fists-GoldPanning:mudBucketUsedfailure', function()
     stage = "mudBucket"
+    ResetActivePrompts()
 end)
 RegisterNetEvent('fists-GoldPanning:waterUsedfailure', function()
     stage = "mudBucket"
+    ResetActivePrompts()
 end)
 RegisterNetEvent('fists-GoldPanning:goldPanfailure', function()
     stage = "mudBucket"
+    ResetActivePrompts()
 end)
 
 
